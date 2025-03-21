@@ -1,0 +1,15 @@
+<ul class="list-unstyled mb-0">
+    {% for eliquid in eliquids %}
+        <li class="p-2 hover-bg-light">
+            <a href="{{ path('app_e_liquid', {'id': eliquid.id}) }}" class="text-decoration-none d-block">
+                <div class="d-flex align-items-center">
+                    <div class="text-dark">
+                        <strong>{{ eliquid.name }}</strong>
+                    </div>
+                </div>
+            </a>
+        </li>
+    {% else %}
+        <li class="p-2 text-muted">No results found</li>
+    {% endfor %}
+</ul>

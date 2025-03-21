@@ -1,0 +1,229 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Shop{% endblock %}
+
+{% block stylesheets %}
+    <style>
+        .floating-button-container {
+            position: fixed;
+            right: 20px; /* Distance from right */
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .button {
+            height: 60px;
+            border: 2px solid #FF5700; /* Deep Orange */
+            transition: width 0.6s, background-color 0.6s;
+            font-size: 15px;
+            font-weight: bold;
+            border-radius: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+            width: 60px; /* Reduce to a circle */
+            background-color: #FF5700; /* Deep Orange */
+            color: #E0E0E0;
+        }
+
+        .button span {
+            transition: transform 0.5s, font-size 0.3s;
+            transform: translateY(70px); /* Hide text */
+            font-size: 0;
+        }
+
+        .button svg {
+            position: absolute;
+            transition: transform 0.6s;
+            z-index: 3;
+            height: 20px;
+            opacity: 1;
+            transform: translateX(0); /* Move icon to the center */
+        }
+
+        .tooltip {
+            visibility: hidden;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            text-align: center;
+            padding: 5px 10px;
+            border-radius: 5px;
+            position: absolute;
+            top: -35px;
+            font-size: 12px;
+            white-space: nowrap;
+            transition: opacity 0.3s;
+            opacity: 0;
+        }
+
+        .floating-button-container:hover .tooltip {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        h1 {
+            color: #FCF2D6;
+        }
+
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="container mt-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Pack {{ name }}</h1>
+            <div class="total-quantity-display bg-dark-teal text-light p-2 rounded">
+                <span id="totalQuantity">0</span>/{{ maxQuantity }}
+            </div>
+        </div>
+        <div class="row">
+            {% for eliquid in eliquids %}
+                <div class="col-md-4 mb-4">
+                    <div class="card bg-dark-teal text-light">
+                        <img src="{{ asset('uploads/products/eliquid/' ~ eliquid.image) }}" class="card-img-top" alt="{{ eliquid.name }}" >
+                        <div class="card-body text-center">
+                            <h5 class="card-title" style="color:#BA3F1D">{{ eliquid.name }}</h5>
+                            <!--p class="card-text">Flavor: {{ eliquid.flavor }}</--p -->
+
+                            {% if eliquid.quantity > 0 %}
+                                <div class="quantity-selector d-flex justify-content-center align-items-center">
+                                    <button class="btn btn-deep-orange btn-sm minus-btn">-</button>
+                                    <span class="mx-2 quantity" data-id="{{ eliquid.id }}" data-available="{{ eliquid.quantity }}">0</span>
+                                    <button class="btn btn-deep-orange btn-sm plus-btn">+</button>
+                                </div>
+                            {% else %}
+                                <p class="text-danger font-weight-bold">Hors Stock</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+
+        </div>
+    </div>
+
+    <form id="packageForm" action="{{ path('app_add_package_to_cart') }}" method="POST" style="display: none;">
+        <input type="hidden" name="packageName" value="{{ name }}">
+        <div id="productInputs"></div>
+    </form>
+
+    <!-- Floating Button -->
+    <div class="floating-button-container">
+        <div class="tooltip">Add to cart</div>
+        <button type="button" class="button" id="submitPackage">
+            <span>Add to Cart</span>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="icon">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l3.6 7.59M9 19a2 2 0 100 4 2 2 0 000-4zm9 0a2 2 0 100 4 2 2 0 000-4zM5 5h14l-1.6 8.21a2 2 0 01-2 1.79H9.6a2 2 0 01-2-1.79L5 5z"/>
+            </svg>
+        </button>
+    </div>
+
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const MAX_QUANTITY = {{ maxQuantity }};
+            const totalQuantityDisplay = document.getElementById('totalQuantity');
+            const addToCartButton = document.querySelector('.floating-button-container .button');
+            const submitButton = document.getElementById('submitPackage');
+            const packageForm = document.getElementById('packageForm');
+            const productInputsContainer = document.getElementById('productInputs');
+
+            function updateTotalQuantity() {
+                let total = 0;
+                document.querySelectorAll('.quantity').forEach(element => {
+                    total += parseInt(element.innerText);
+                });
+                totalQuantityDisplay.innerText = total;
+
+                document.querySelectorAll('.quantity').forEach(quantityElement => {
+                    const plusButton = quantityElement.nextElementSibling;
+                    const currentQuantity = parseInt(quantityElement.innerText);
+                    const availableQuantity = parseInt(quantityElement.dataset.available);
+
+                    if (total >= MAX_QUANTITY || currentQuantity >= availableQuantity) {
+                        plusButton.disabled = true;
+                        plusButton.classList.add('opacity-50');
+                    } else {
+                        plusButton.disabled = false;
+                        plusButton.classList.remove('opacity-50');
+                    }
+                });
+
+
+                // Enable/disable floating add-to-cart button
+                if (total < MAX_QUANTITY) {
+                    addToCartButton.disabled = true;
+                    addToCartButton.style.backgroundColor = "#A9A9A9"; // Grey color for disabled state
+                    addToCartButton.style.cursor = "not-allowed";
+                } else {
+                    addToCartButton.disabled = false;
+                    addToCartButton.style.backgroundColor = "#FF5700"; // Original deep orange
+                    addToCartButton.style.cursor = "pointer";
+                }
+
+            }
+
+            document.querySelectorAll(".minus-btn").forEach(button => {
+                button.addEventListener("click", function () {
+                    let quantityElement = this.nextElementSibling;
+                    let quantity = parseInt(quantityElement.innerText);
+                    if (quantity > 0) {
+                        quantityElement.innerText = quantity - 1;
+                        updateTotalQuantity();
+                    }
+                });
+            });
+
+            document.querySelectorAll(".plus-btn").forEach(button => {
+                button.addEventListener("click", function () {
+                    let quantityElement = this.previousElementSibling;
+                    let quantity = parseInt(quantityElement.innerText);
+                    let availableQuantity = parseInt(quantityElement.dataset.available);
+                    let totalQuantity = parseInt(totalQuantityDisplay.innerText);
+
+                    if (totalQuantity < MAX_QUANTITY && quantity < availableQuantity) {
+                        quantityElement.innerText = quantity + 1;
+                        updateTotalQuantity();
+                    }
+                });
+            });
+
+            // Initial update
+            updateTotalQuantity();
+
+            submitButton.addEventListener('click', function() {
+                if (this.disabled) {
+                    return;
+                }
+
+                // Clear previous inputs
+                productInputsContainer.innerHTML = '';
+
+                // Add inputs for each product with quantity > 0
+                document.querySelectorAll('.quantity').forEach(element => {
+                    const quantity = parseInt(element.innerText);
+                    if (quantity > 0) {
+                        const input = document.createElement('input');
+                        input.type = 'hidden';
+                        input.name = `products[${element.dataset.id}]`;  // Changed this line
+                        input.value = quantity;
+                        productInputsContainer.appendChild(input);
+                    }
+                });
+
+                // Submit the form
+                packageForm.submit();
+            });
+        });
+
+    </script>
+{% endblock %}

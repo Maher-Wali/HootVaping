@@ -1,0 +1,92 @@
+{% extends 'base.html.twig' %}
+{% block body_class %}bg-charcoal text-light-gray{% endblock %}
+{% block main_class %}flex-grow-1{% endblock %}
+{% block body %}
+    <!-- Full width hero image -->
+    <section id="hero" class="container-fluid p-0 vh-100">
+        <div class="position-relative h-100">
+            <img src="{{ asset('uploads/landing.jpg') }}" class="w-100 h-100" alt="E-Liquid Landing Image" style="object-fit: cover;">
+        </div>
+    </section>
+
+    <!-- Featured E-Liquids Section -->
+    <section id="featured-products" class="container py-5">
+        <h2 class="text-center text-light-cyan">Featured E-Liquids</h2>
+        <!-- Adjust the carousel size by adding a custom class -->
+        <div id="productCarousel" class="carousel slide custom-carousel" data-bs-ride="carousel">
+            <div class="carousel-inner">
+                {% for eLiquid in featuredELiquids %}
+                    <div class="carousel-item {% if loop.first %}active{% endif %}">
+                        <div class="card bg-dark-teal text-light-gray border-light-cyan">
+                            <!-- Add the custom class 'carousel-image' here -->
+                            <img src="{{ asset('uploads/products/eliquid/' ~ eLiquid.image) }}" class="card-img-top carousel-image" alt="{{ eLiquid.name }}">
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            <button class="carousel-control-prev" type="button" data-bs-target="#productCarousel" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Previous</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#productCarousel" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Next</span>
+            </button>
+        </div>
+    </section>
+{% endblock %}
+
+{% block stylesheets %}
+    <style>
+        .bg-charcoal { background-color: #1E1E1E; }
+        .text-light-gray { color: #E0E0E0; }
+        .text-light-cyan { color: #89CFF0; }
+        .text-deep-orange { color: #FF5700; }
+        .border-light-cyan { border: 2px solid #89CFF0 !important; }
+        .bg-dark-teal { background-color: #006D77; }
+        .btn-deep-orange { background-color: #FF5700; color: #1E1E1E; border: none; }
+        .btn-deep-orange:hover { background-color: #E04E00; }
+
+        /* Custom styles to make the carousel smaller */
+        .custom-carousel {
+            max-width: 600px; /* Adjust the width of the carousel */
+            margin: 0 auto; /* Center the carousel */
+        }
+        .carousel-image {
+            object-fit: cover; /* Ensure the images maintain their aspect ratio */
+        }
+        .card {
+            max-width: 100%; /* Ensure the card fits within the carousel */
+        }
+
+        /* Additional styles for the hero image */
+        #hero {
+            overflow: hidden;
+        }
+        #hero .position-relative {
+            height: 100%;
+        }
+        #hero img {
+            height: 100%; /* Make the image cover the full height */
+            object-fit: cover;
+            object-position: center;
+        }
+        #hero .position-absolute {
+            width: 100%;
+            background-color: rgba(30, 30, 30, 0.7); /* Semi-transparent background for text */
+            padding: 2rem;
+        }
+        #hero h1, #hero p {
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8); /* Text shadow for better readability */
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            margin-bottom: 0;
+        }
+    </style>
+{% endblock %}

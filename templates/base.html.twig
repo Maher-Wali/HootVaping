@@ -1,17 +1,1080 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta charset="UTF-8">
-        <title>{% block title %}Welcome!{% endblock %}</title>
-        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚫️</text><text y=%221.3em%22 x=%220.2em%22 font-size=%2276%22 fill=%22%23fff%22>sf</text></svg>">
-        {% block stylesheets %}
-        {% endblock %}
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}HootVaping{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="{{ asset('uploads/logo_ramadan.png') }}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
+    {% block stylesheets %}
+        <style>
+            html, body {
+                background: url("{{ asset('uploads/background.jpg') }}") nrepeat center center fixed;
+                background-size: cover;
+                background-color : transparent;
+                color: #E0E0E0; /* Light Gray Text */
+                font-family: Arial, sans-serif;
+                margin: 0;
+                padding: 0;
+                height: 100%;
+            }
+        </style>
+    {% endblock %}
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script defer src="{{ asset('js/loader.js') }}"></script>
+    {% block javascripts %}
+        <script>
+            $(document).ready(function() {
+                // Debug logging
+                console.log('DOM Ready');
 
-        {% block javascripts %}
-            {% block importmap %}{{ importmap('app') }}{% endblock %}
-        {% endblock %}
-    </head>
-    <body>
-        {% block body %}{% endblock %}
-    </body>
+                // Cache jQuery selections
+                const $searchInput = $('#search-input');
+                const $searchResults = $('#search-results');
+                const $searchForm = $('#search-form');
+
+                // Debug elements
+                console.log('Search input found:', $searchInput.length > 0);
+                console.log('Search results found:', $searchResults.length > 0);
+                console.log('Search form found:', $searchForm.length > 0);
+
+                // Handle input changes
+                $searchInput.on('input', function() {
+                    const query = $(this).val() || '';
+                    console.log('Input value:', query);
+
+                    if (query.length >= 1) {
+                        performSearch(query);
+                    } else {
+                        $searchResults.empty().hide();
+                    }
+                });
+
+                // Handle form submission
+                $searchForm.on('submit', function(e) {
+                    e.preventDefault();
+                    const query = $searchInput.val() || '';
+                    console.log('Form submitted with query:', query);
+
+                    if (query.length >= 1) {
+                        performSearch(query);
+                    }
+                });
+
+                // Function to perform the search
+                function performSearch(query) {
+                    if (!query) {
+                        console.warn('Empty query, skipping search');
+                        return;
+                    }
+
+                    console.log('Performing search for:', query);
+
+                    $.ajax({
+                        url: '{{ path('app_search') }}',
+                        type: 'GET',
+                        data: { q: query },
+                        success: function(response) {
+                            console.log('Search response received');
+                            $searchResults.html(response).show();
+                        },
+                        error: function(xhr, status, error) {
+                            console.error('Search error:', error);
+                            console.error('Status:', status);
+                            console.error('Response:', xhr.responseText);
+                        }
+                    });
+                }
+
+                // Hide results when clicking outside
+                $(document).on('click', function(e) {
+                    if (!$(e.target).closest('.search-form').length) {
+                        $searchResults.hide();
+                    }
+                });
+
+                // Show results when focusing on input
+                $searchInput.on('focus', function() {
+                    const currentResults = $searchResults.html().trim();
+                    if (currentResults.length > 0) {
+                        $searchResults.show();
+                    }
+                });
+
+                // Mobile menu functionality
+                $('.hamburger-menu').on('click', function() {
+                    openNav();
+                });
+
+                $('.sidenav .closebtn').on('click', function() {
+                    closeNav();
+                });
+
+                $('.overlay').on('click', function() {
+                    closeNav();
+                });
+
+                // Dropdown functionality in sidenav
+                $('.dropdown-toggle-mobile').on('click', function(e) {
+                    e.preventDefault();
+                    $(this).next('.sidenav-dropdown').slideToggle();
+                });
+
+                function openNav() {
+                    $('#mySidenav').css('width', '250px');
+                    $('.overlay').fadeIn();
+                    $('body').css('overflow', 'hidden'); // Prevent body scrolling
+                }
+
+                function closeNav() {
+                    $('#mySidenav').css('width', '0');
+                    $('.overlay').fadeOut();
+                    $('body').css('overflow', ''); // Restore body scrolling
+                }
+
+                // Promo code functionality for sidenav
+                $('#submit-gift-sidenav').on('click', function() {
+                    const giftCode = $('#gift-code-input-sidenav').val().trim();
+                    console.log('Submitting code from sidenav:', giftCode);
+                    if (giftCode) {
+                        // Show loading state
+                        $(this).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>');
+                        $(this).prop('disabled', true);
+
+                        // Call your updated PromoCodeController
+                        $.ajax({
+                            url: '{{ path("app_promo_code_apply") }}',
+                            type: 'GET',
+                            data: { code: giftCode },
+                            dataType: 'json',
+                            success: function(response) {
+                                console.log('Success response:', response);
+                                // Reset button state
+                                $('#submit-gift-sidenav').html('Apply');
+                                $('#submit-gift-sidenav').prop('disabled', false);
+
+                                if (response.success) {
+                                    // Show success message
+                                    showToast('success', response.message || 'Promo code applied successfully!');
+                                    $('#gift-code-input-sidenav').val('');
+                                    closeNav(); // Close the menu after success
+
+                                    if (window.location.pathname === '/cart') {
+                                        window.location.reload();
+                                    }
+                                } else {
+                                    // Show error message
+                                    showToast('error', response.message);
+
+                                    // If login is required, redirect
+                                    if (response.redirectUrl) {
+                                        setTimeout(function() {
+                                            window.location.href = response.redirectUrl;
+                                        }, 2000); // Redirect after 2 seconds
+                                    }
+                                }
+                            },
+                            error: function(xhr, status, error) {
+                                console.error('Error applying promo code:', error);
+                                // Reset button state
+                                $('#submit-gift-sidenav').html('Apply');
+                                $('#submit-gift-sidenav').prop('disabled', false);
+                                showToast('error', 'An error occurred while applying the promo code.');
+                            }
+                        });
+                    }
+
+                    function showToast(type, message) {
+                        // Create toast container if it doesn't exist
+                        if ($('#toast-container').length === 0) {
+                            $('body').append('<div id="toast-container" style="position: fixed; top: 20px; right: 20px; z-index: 5000;"></div>');
+                        }
+
+                        // Generate a unique ID for this toast
+                        const toastId = 'toast-' + Date.now();
+
+                        // Define toast color based on type
+                        let bgColor = 'bg-primary';
+                        if (type === 'success') bgColor = 'bg-success';
+                        if (type === 'error') bgColor = 'bg-danger';
+                        if (type === 'warning') bgColor = 'bg-warning';
+
+                        // Create the toast
+                        const toast = `
+    <div id="${toastId}" class="toast ${bgColor} text-white" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="5000">
+        <div class="toast-header">
+            <strong class="me-auto">${type.charAt(0).toUpperCase() + type.slice(1)}</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body">
+            ${message}
+        </div>
+    </div>
+    `;
+
+                        // Add the toast to the container
+                        $('#toast-container').append(toast);
+
+                        // Initialize and show the toast using Bootstrap's API
+                        const toastElement = new bootstrap.Toast(document.getElementById(toastId));
+                        toastElement.show();
+
+                        // Remove toast after it's hidden
+                        $(`#${toastId}`).on('hidden.bs.toast', function() {
+                            $(this).remove();
+                        });
+                    }
+                });
+
+
+            });
+
+            $(document).ready(function() {
+                const $giftButton = $('#gift-button');
+                const $giftInput = $('.gift-input-wrapper');
+                const $giftCodeInput = $('#gift-code-input');
+
+                // Toggle gift input on button click
+                $giftButton.on('click', function(e) {
+                    e.preventDefault();
+                    $giftInput.slideToggle(200);
+                    if ($giftInput.is(':visible')) {
+                        $giftCodeInput.focus();
+                    }
+                });
+
+                // Hide gift input when clicking outside
+                $(document).on('click', function(e) {
+                    if (!$(e.target).closest('.gift-input-container').length) {
+                        $giftInput.slideUp(200);
+                    }
+                });
+
+                // Prevent hiding when clicking inside the input
+                $giftInput.on('click', function(e) {
+                    e.stopPropagation();
+                });
+
+                // Handle gift code submission
+                // Handle gift code submission
+                $('#submit-gift').on('click', function() {
+                    const giftCode = $giftCodeInput.val().trim();
+                    console.log('Submitting code:', giftCode); // Debug log
+                    if (giftCode) {
+                        // Show loading state
+                        $(this).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Applying...');
+                        $(this).prop('disabled', true);
+
+                        // Call your updated PromoCodeController
+                        $.ajax({
+                            url: '{{ path("app_promo_code_apply") }}',
+                            type: 'GET',
+                            data: { code: giftCode },
+                            dataType: 'json',
+                            success: function(response) {
+                                console.log('Success response:', response); // Debug log
+                                // Reset button state
+                                $('#submit-gift').html('Apply');
+                                $('#submit-gift').prop('disabled', false);
+
+                                if (response.success) {
+                                    // Show success message
+                                    showToast('success', response.message || 'Promo code applied successfully!');
+
+                                    // Close the popup
+                                    $giftInput.slideUp(200);
+                                    $giftCodeInput.val('');
+
+                                    // If you want to update the cart display with the new discount
+                                    // you could trigger a cart refresh here or redirect to cart
+                                    if (window.location.pathname === '/cart') {
+                                        // If we're on the cart page, refresh it
+                                        window.location.reload();
+                                    } else {
+                                        // Optionally redirect to cart
+                                        // window.location.href = '/cart';
+                                    }
+                                } else {
+                                    // Show error message
+                                    showToast('error', response.message);
+
+                                    // If login is required, redirect
+                                    if (response.redirectUrl) {
+                                        setTimeout(function() {
+                                            window.location.href = response.redirectUrl;
+                                        }, 2000); // Redirect after 2 seconds
+                                    }
+                                }
+                            },
+                            error: function(xhr, status, error) {
+                                console.error('Error applying promo code:', error);
+                                // Reset button state
+                                $('#submit-gift').html('Apply');
+                                $('#submit-gift').prop('disabled', false);
+                                showToast('error', 'An error occurred while applying the promo code.');
+                            }
+                        });
+                    }
+                });
+
+
+
+// Helper function to show toast notifications
+                function showToast(type, message) {
+                    // Create toast container if it doesn't exist
+                    if ($('#toast-container').length === 0) {
+                        $('body').append('<div id="toast-container" style="position: fixed; top: 20px; right: 20px; z-index: 5000;"></div>');
+                    }
+
+                    // Generate a unique ID for this toast
+                    const toastId = 'toast-' + Date.now();
+
+                    // Define toast color based on type
+                    let bgColor = 'bg-primary';
+                    if (type === 'success') bgColor = 'bg-success';
+                    if (type === 'error') bgColor = 'bg-danger';
+                    if (type === 'warning') bgColor = 'bg-warning';
+
+                    // Create the toast
+                    const toast = `
+    <div id="${toastId}" class="toast ${bgColor} text-white" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="5000">
+        <div class="toast-header">
+            <strong class="me-auto">${type.charAt(0).toUpperCase() + type.slice(1)}</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body">
+            ${message}
+        </div>
+    </div>
+    `;
+
+                    // Add the toast to the container
+                    $('#toast-container').append(toast);
+
+                    // Initialize and show the toast using Bootstrap's API
+                    const toastElement = new bootstrap.Toast(document.getElementById(toastId));
+                    toastElement.show();
+
+                    // Remove toast after it's hidden
+                    $(`#${toastId}`).on('hidden.bs.toast', function() {
+                        $(this).remove();
+                    });
+                }
+            });
+
+            $(document).ready(function() {
+                // Mobile search toggle functionality
+                $('#mobile-search-toggle').on('click', function(e) {
+                    e.preventDefault();
+                    $('header').addClass('search-active');
+                    $('#search-input').focus();
+                });
+
+                // Close mobile search
+                $('#mobile-search-close').on('click', function(e) {
+                    e.preventDefault();
+                    $('header').removeClass('search-active');
+                });
+
+                // Hide search when clicking outside
+                $(document).on('click', function(e) {
+                    if ($('header').hasClass('search-active') &&
+                        !$(e.target).closest('.search-form').length &&
+                        !$(e.target).closest('#mobile-search-toggle').length) {
+                        $('header').removeClass('search-active');
+                    }
+                });
+
+                // Prevent search form from closing when clicking inside it
+                $('.search-form').on('click', function(e) {
+                    e.stopPropagation();
+                });
+            });
+        </script>
+    {% endblock %}
+</head>
+<body class="{% block body_class %}d-flex flex-column min-vh-100{% endblock %}"> <!-- Makes body take at least full height -->
+
+<!-- Mobile side navigation -->
+<div id="mySidenav" class="sidenav">
+    <a href="javascript:void(0)" class="closebtn">&times;</a>
+
+    <!-- Promo Code section at the top of sidenav -->
+    <div class="sidenav-promo-code">
+        <h5>Promo Code</h5>
+        <div class="input-group">
+            <input type="text" class="form-control" id="gift-code-input-sidenav" placeholder="Enter code...">
+            <button class="btn btn-sm btn-deep-orange" type="button" id="submit-gift-sidenav">Apply</button>
+        </div>
+    </div>
+
+    <a href="/home">Home</a>
+    <a href="/package">Shop</a>
+    <a href="/cart">Cart</a>
+    <a href="#" class="dropdown-toggle-mobile">Account</a>
+    <div class="sidenav-dropdown">
+        {% if app.user %}
+            <a href="/account/details">Details</a>
+            <a href="/account/orders">Orders</a>
+            <a href="/logout">Logout</a>
+        {% else %}
+            <a href="/login" >Login</a>
+            <a href="/register">Sign up</a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Overlay for when menu is open -->
+<div class="overlay"></div>
+
+<!-- Header Block -->
+{% block header %}
+    <header class="d-flex justify-content-between align-items-center p-3 bg-dark-teal position-fixed w-100 top-0 left-0 z-index-1000">
+
+        <!-- Hamburger Menu for Mobile -->
+        <span class="hamburger-menu">&#9776;</span>
+
+        <!-- Left Section with Gift Button and Search -->
+        <div class="d-flex align-items-center left-section">
+            <div class="gift-input-container">
+                <button class="btn btn-link p-0 me-3" id="gift-button">
+                    <img src="{{ asset('uploads/gift.png') }}" alt="Cadeau" class="gift-icon">
+                </button>
+                <div class="gift-input-wrapper" style="display: none;">
+                    <div class="popover-container">
+                        <div class="popover-header">
+                            Promo Code
+                        </div>
+                        <div class="popover-body">
+                            <div class="input-group">
+                                <input type="text" class="form-control search-bar" id="gift-code-input" placeholder="Enter Code...">
+                                <button class="btn btn-deep-orange" type="button" id="submit-gift">Apply</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <form class="d-flex search-form" id="search-form">
+                <div class="input-group">
+                    <input id="search-input" class="form-control search-bar" type="search" placeholder="Eliquid name ..." aria-label="Search" name="q">
+                    <button class="btn btn-deep-orange" type="submit">Search</button>
+                </div>
+                <div id="search-results" class="search-results"></div>
+            </form>
+        </div>
+
+        <!-- Logo in Center -->
+        <div class="logo mx-auto">
+            <a href="/home">
+                <img src="{{ asset('uploads/logo_ramadan.png') }}" alt="Logo du magasin" class="img-fluid" style="max-height: 100px;" >
+            </a>
+        </div>
+
+        <!-- Mobile Search Toggle Button -->
+        <button id="mobile-search-toggle" class="mobile-search-toggle">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="#E0E0E0" class="bi bi-search" viewBox="0 0 16 16">
+                <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+            </svg>
+        </button>
+
+        <!-- Add this close button inside the header tag, right after the mobile-search-toggle button -->
+        <button id="mobile-search-close" class="btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="#E0E0E0" class="bi bi-x-lg" viewBox="0 0 16 16">
+                <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z"/>
+            </svg>
+        </button>
+
+        <!-- Navigation Links (hidden on mobile) -->
+        <nav class="ms-auto">
+            <ul class="nav">
+                <li class="nav-item"><a class="nav-link text-light-gray" href="/home" style="transition: color 0.3s;" onmouseover="this.style.color='#BA3F1D'" onmouseout="this.style.color=''">Home</a></li>
+                <li class="nav-item"><a class="nav-link text-light-gray" href="/package" style="transition: color 0.3s;" onmouseover="this.style.color='#BA3F1D'" onmouseout="this.style.color=''">Shop</a></li>
+                <li class="nav-item"><a class="nav-link text-light-gray" href="/cart" style="transition: color 0.3s;" onmouseover="this.style.color='#BA3F1D'" onmouseout="this.style.color=''">Cart</a></li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle text-light-gray" href="#" id="accountDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="transition: color 0.3s;" onmouseover="this.style.color='#BA3F1D'" onmouseout="this.style.color=''">
+                        Account
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="accountDropdown">
+                        {% if app.user %}
+                            <li><a class="dropdown-item" href="/account/details">Details</a></li>
+                            <li><a class="dropdown-item" href="/account/orders">Orders</a></li>
+                            <li><a class="dropdown-item" href="/logout">Logout</a></li>
+                        {% else %}
+                            <li><a class="dropdown-item" href="/login">Login</a></li>
+                            <li><a class="dropdown-item" href="/register">Sign up</a></li>
+                        {% endif %}
+                    </ul>
+                </li>
+            </ul>
+        </nav>
+    </header>
+{% endblock %}
+
+<!-- Main Content -->
+<main class="{% block main_class %}container mt-4 flex-grow-1{% endblock %}"> <!-- Ensures main grows to fill space -->
+    <!-- Loader -->
+    <div id="loader">
+        <div class="spinner"></div>
+    </div>
+    {% for label, messages in app.flashes %}
+        <div class="alert alert-{{ label }}">
+            {% for message in messages %}
+                {{ message }}
+            {% endfor %}
+        </div>
+    {% endfor %}
+
+    {% block body %}{% endblock %}
+</main>
+
+
+<!-- Footer Block -->
+{% block footer %}
+    <footer class="text-center py-3 bg-dark-teal mt-auto position-relative">
+        <div class="container d-flex justify-content-center">
+            <!-- Centered Instagram Link -->
+            <a href="https://www.instagram.com/hootvaping" class="text-light-gray" target="_blank">
+                <img src="{{ asset('uploads/instagram_logo.png') }}" alt="Instagram" style="height: 25px; filter: invert(100%);"> @hootvaping
+            </a>
+        </div>
+        <p class="mt-3">&copy; {{ "now"|date("Y") }} HootVaping. All Rights Reserved.</p>
+    </footer>
+{% endblock %}
+</body>
 </html>
+
+<style>
+    .bg-charcoal { background-color: #1E1E1E; }
+    .text-light-gray { color: #E0E0E0; }
+    .text-light-cyan { color: #70E4EF; }
+    .text-deep-orange { color: #FF5700; }
+    .border-light-cyan { border: 2px solid #89CFF0 !important; }
+    .bg-dark-teal { background-color: #393E41; }
+    .btn-deep-orange { background-color: #D97E2E; color: #1E1E1E; border: none; }
+    .btn-deep-orange:hover { background-color: #BA3F1D; }
+    .bg-dark-teal {
+        background-color: rgba(57, 62, 65, 1); /* Adjust the last value (0.8) for transparency */
+    }
+    html, body {
+        background: url("{{ asset('uploads/background.jpg') }}") repeat scroll;
+        background-size: 50vw auto;
+        background-color : transparent;
+    }
+    @font-face {
+        font-family: 'CustomFont';
+        src: url('{{ asset('fonts/CoopersTown-5yxvL.ttf') }}') format('truetype');
+        font-weight: normal;
+        font-style: normal;
+    }
+
+    body {
+        font-family: 'CustomFont', sans-serif;
+        padding-top: 80px;
+    }
+
+    /* Flexbox Header Styles */
+    header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        z-index: 1000;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.7); /* Adding shadow to header */
+    }
+
+    .logo {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%) translateY(20%);
+        padding: 10px; /* Optional: Adds a little padding around the image to enhance the shadow effect */
+    }
+
+    .search-bar {
+        position: absolute;
+        left: 1%; /* Adjust this value to move the search bar */
+        width: 270px; /* Width of the search bar */
+    }
+
+    .logo img {
+        max-height: 120px; /* Increase this value to make the logo bigger */
+        display: block; /* Ensures no space below the image */
+        filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.7));
+    }
+    .search-bar {
+        width: 100%;
+    }
+
+    .input-group {
+        width: 100%;
+    }
+    .promo-code-form {
+        width: 300px; /* Same width as the search bar */
+        position: relative;
+        margin-right: 20px; /* Adjust as needed */
+    }
+
+    .gift-button-container {
+        margin-left: 20px;
+    }
+
+    .gift-icon {
+        height: 24px;
+        width: 24px;
+        filter: brightness(0) invert(1); /* Makes the icon white */
+        transition: filter 0.3s ease;
+    }
+
+    .gift-icon:hover {
+        filter: brightness(0) invert(0.8); /* Slightly darker on hover */
+    }
+
+    /* Updated search form styles */
+    .search-form {
+        width: 400px;
+        margin-left: 10px;
+    }
+
+    .search-bar {
+        position: relative; /* Changed from absolute to relative */
+        left: auto; /* Remove absolute positioning */
+        width: 100%;
+    }
+
+    /* Ensure the header layout works properly */
+    header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px;
+        gap: 20px; /* Adds consistent spacing between elements */
+    }
+
+    .logo {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%) translateY(20%);
+    }
+
+    .left-section {
+        width: 33%; /* Allocate one-third of the header width */
+        margin-right: auto; /* Push the logo to the center */
+    }
+
+    .gift-icon {
+        height: 24px;
+        width: 24px;
+        filter: brightness(0) invert(1);
+        transition: filter 0.3s ease;
+    }
+
+    .gift-icon:hover {
+        filter: brightness(0) invert(0.8);
+    }
+
+    /* Updated search form styles */
+    .search-form {
+        width: 270px; /* Adjusted width */
+    }
+
+    .search-bar {
+        position: relative;
+        width: 100%;
+    }
+
+    /* Logo positioning */
+    .logo {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%) translateY(20%);
+        z-index: 1; /* Ensure logo stays above other elements */
+    }
+
+    /* Ensure proper spacing in header */
+    header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px;
+    }
+
+    /* Navigation positioning */
+    nav {
+        width: 33%; /* Allocate one-third of the header width */
+        display: flex;
+        justify-content: flex-end;
+    }
+    .search-results {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        background-color: white;
+        border: 1px solid #ddd;
+        z-index: 1000;
+        max-height: 200px;
+        overflow-y: auto;
+    }
+    .search-results ul {
+        list-style-type: none;
+        padding: 0;
+        margin: 0;
+    }
+    .search-results li {
+        padding: 10px;
+        border-bottom: 1px solid #ddd;
+    }
+    .search-results li:hover {
+        background-color: #f1f1f1;
+    }
+
+    .search-form {
+        position: relative;
+    }
+
+    .search-results {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        background-color: white;
+        border: 1px solid #ddd;
+        border-radius: 0 0 4px 4px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        z-index: 1000;
+        display: none;
+        max-height: 300px;
+        overflow-y: auto;
+    }
+
+    .search-results ul {
+        margin: 0;
+        padding: 0;
+    }
+
+    .hover-bg-light:hover {
+        background-color: #f8f9fa;
+    }
+
+    .gift-input-container {
+        position: relative;
+    }
+
+    .gift-input-wrapper {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        margin-top: 10px;
+        width: 270px; /* Same width as search bar */
+        z-index: 1001;
+    }
+
+    .gift-input-wrapper .input-group {
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .gift-input-wrapper .form-control {
+        background-color: white;
+        border: 1px solid #ced4da;
+    }
+
+    .gift-input-container {
+        position: relative;
+    }
+
+    .gift-input-wrapper {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        margin-top: 10px;
+        width: 300px;
+        z-index: 1001;
+    }
+
+    .popover-container {
+        background-color: white;
+        border-radius: 4px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        border: 1px solid rgba(0,0,0,0.2);
+    }
+
+    .popover-header {
+        padding: 0.5rem 1rem;
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #dee2e6;
+        border-top-left-radius: 4px;
+        border-top-right-radius: 4px;
+        font-weight: 500;
+        color: #212529;
+        font-size: 1rem;
+    }
+
+    .popover-body {
+        padding: 1rem;
+    }
+
+    .popover-body .input-group {
+        margin: 0;
+    }
+
+    .gift-input-wrapper .form-control {
+        background-color: white;
+        border: 1px solid #ced4da;
+    }
+
+    /* Optional: Add a small arrow to make it look more like a popover */
+    .popover-container::before {
+        content: '';
+        position: absolute;
+        top: -10px;
+        left: 20px;
+        border-width: 0 10px 10px;
+        border-style: solid;
+        border-color: transparent transparent rgba(0,0,0,0.2);
+        opacity: 0;
+    }
+
+    .popover-container::after {
+        content: '';
+        position: absolute;
+        top: -9px;
+        left: 20px;
+        border-width: 0 10px 10px;
+        border-style: solid;
+        border-color: transparent transparent white;
+        opacity:0;
+    }
+
+    .alert {
+        padding: 10px;
+        margin-bottom: 10px;
+        border-radius: 5px;
+    }
+
+
+    /* Sliding menu styles */
+    .sidenav {
+        height: 100%;
+        width: 0;
+        position: fixed;
+        z-index: 2000;
+        top: 0;
+        left: 0;
+        background-color: #111;
+        overflow-x: hidden;
+        transition: 0.5s;
+        padding-top: 60px;
+    }
+
+    .sidenav a {
+        padding: 8px 8px 8px 32px;
+        text-decoration: none;
+        font-size: 18px;
+        color: #818181;
+        display: block;
+        transition: 0.3s;
+    }
+
+    .sidenav a:hover {
+        color: #f1f1f1;
+    }
+
+    .sidenav .closebtn {
+        position: absolute;
+        top: 0;
+        right: 25px;
+        font-size: 36px;
+        margin-left: 50px;
+    }
+
+    .sidenav-dropdown {
+        padding-left: 16px;
+        display: none;
+    }
+
+    .hamburger-menu {
+        display: none;
+        font-size: 30px;
+        cursor: pointer;
+        color: white;
+    }
+
+    /* Promo code in sidenav */
+    .sidenav-promo-code {
+        padding: 15px 15px 25px 32px;
+        border-bottom: 1px solid #333;
+        margin-bottom: 15px;
+    }
+
+    .sidenav-promo-code h5 {
+        color: #f1f1f1;
+        margin-bottom: 10px;
+    }
+
+    .sidenav-promo-code .input-group {
+        max-width: 200px;
+    }
+
+    @media screen and (max-width: 768px) {
+        .nav {
+            display: none;
+        }
+
+        .hamburger-menu {
+            display: block;
+        }
+
+        .left-section {
+            margin-left: 50px;
+        }
+    }
+
+    /* Overlay when menu is open */
+    .overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0,0,0,0.5);
+        z-index: 1500;
+    }
+
+    /* Mobile search toggle button */
+    .mobile-search-toggle {
+        display: none;
+        background: none;
+        border: none;
+        color: #E0E0E0;
+        cursor: pointer;
+        padding: 5px;
+    }
+
+    /* Mobile search close button */
+    .mobile-search-close {
+        display: none;
+        background: none;
+        border: none;
+        color: #E0E0E0;
+        cursor: pointer;
+    }
+
+    @media screen and (max-width: 768px) {
+        /* Hide desktop elements on mobile */
+        .nav {
+            display: none;
+        }
+
+        .hamburger-menu {
+            display: block;
+        }
+
+        /* Hide search form and gift button on mobile by default */
+        .search-form {
+            display: none !important; /* Use !important to override d-flex */
+        }
+
+        .gift-input-container {
+            display: none;
+        }
+
+        /* Show mobile search toggle */
+        .mobile-search-toggle {
+            display: block;
+        }
+
+        /* When search is active */
+        .search-active .search-form {
+            display: flex !important;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            padding: 10px;
+            background-color: #111;
+            z-index: 1600;
+        }
+
+        .search-active .mobile-search-close {
+            display: block;
+        }
+
+        /* Logo positioning */
+        .search-active .logo {
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* Position the search toggle button */
+        .mobile-search-toggle {
+            grid-column: 3;
+            display: block;
+            margin-left: 50%;
+        }
+
+        /* Mobile Search Styles */
+        @media (max-width: 768px) {
+            /* Base styles for mobile search */
+            header.search-active .search-form {
+                display: flex !important;
+                position: absolute;
+                top: 100%;
+                left: -10px;
+                width: 100%;
+                padding: 10px;
+                background-color: rgba(0, 0, 0, 0);
+                z-index: 1000;
+
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0);
+            }
+
+            header .search-form {
+                display: none;
+            }
+
+            header.search-active .search-form .input-group {
+                width: 100%;
+            }
+
+            header.search-active .search-form input {
+                flex: 1;
+            }
+
+            /* Search results positioning */
+            #search-results {
+                position: absolute;
+                top: 100%;
+                left: 0;
+                width: 100%;
+                max-height: 300px;
+                overflow-y: auto;
+                background-color: #fff;
+                border-radius: 0 0 5px 5px;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+                z-index: 999;
+            }
+
+            /* Close button for mobile search */
+            #mobile-search-close {
+                position: absolute;
+                right: 15px;
+                top: 15px;
+                color: #fff;
+                font-size: 20px;
+                z-index: 1001;
+                display: none;
+            }
+
+            header.search-active #mobile-search-close {
+                display: block;
+            }
+        }
+    }
+</style>

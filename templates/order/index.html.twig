@@ -1,0 +1,46 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Order Details{% endblock %}
+
+{% block body %}
+    <div class="container mt-5">
+        <h2>Order Summary</h2>
+
+        <div class="card p-4 mb-4" style="font-family: 'Roboto', sans-serif;">
+            <h4>Customer Information</h4>
+            <p><strong>First Name:</strong> {{ order.contact ? order.contact.firstname : order.user.firstname }}</p>
+            <p><strong>Last Name:</strong> {{ order.contact ? order.contact.lastname : order.user.lastname }}</p>
+            <p><strong>Email:</strong> {{ order.contact ? order.contact.email : order.user.email }}</p>
+            <p><strong>Phone Number:</strong> {{ order.contact ? order.contact.phoneNumber : order.user.phoneNumber }}</p>
+            <p><strong>Address:</strong> state :{{ order.address.state }} , city :{{ order.address.city }} , street : {{ order.address.street }}</p>
+        </div>
+
+        <div class="card p-4 mb-4" style="font-family: 'Roboto', sans-serif;">
+            <h4>Order Details</h4>
+            {% for orderPackage in orderPackages %}
+                <div class="mb-3">
+                    <h5>Package: {{ orderPackage.packageName }}</h5>
+                    <ul>
+                        {% for orderPackageItem in orderPackageItems %}
+                            {% if orderPackageItem.orderPackage.id == orderPackage.id %}
+                                <li>{{ orderPackageItem.productName }} - Quantity: {{ orderPackageItem.quantity }}</li>
+                            {% endif %}
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endfor %}
+
+            {# Add the applied discount and total here #}
+            <div class="mt-4">
+                {% if discount > 0 %}
+                    <p><strong>Applied Discount:</strong> {{ discount }}%</p>
+                {% endif %}
+                <p><strong>Total:</strong> {{ order.total }}DT</p>
+            </div>
+        </div>
+
+        <div class="text-center">
+            <a href="{{ path('order_confirm', {'id': order.id}) }}" class="btn btn-primary">Confirm Order</a>
+        </div>
+    </div>
+{% endblock %}

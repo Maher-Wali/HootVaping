@@ -1,0 +1,143 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Available Packages - HootVaping{% endblock %}
+
+{% block stylesheets %}
+    <style>
+        /* Existing styles */
+        .package-detail {
+            width: 300px;
+            height: 300px;
+            margin: 40px auto;
+            padding: 20px;
+            border-radius: 50%;
+            background-color: #FCF2D6;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 1);
+            overflow: hidden;
+            position: relative;
+            transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+            transform-origin: center center;
+            opacity: 0.7;
+        }
+
+        .package-detail:hover {
+            transform: scale(1.1);
+            opacity: 1;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 1);
+        }
+
+        .package-image-container {
+            position: relative;
+            width: 100%;
+            height: auto;
+            transition: opacity 0.5s ease-out;
+        }
+
+        .package-image {
+            width: 100%;
+            height: auto;
+            object-fit: cover;
+            margin-bottom: 15px;
+        }
+
+        .shadow-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 0.5s ease-out;
+        }
+
+        .package-detail:hover .shadow-image {
+            opacity: 1;
+        }
+
+        .package-name-hover {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 1.5rem;
+            font-weight: bold;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+            text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.7);
+        }
+
+        .package-detail:hover .package-name-hover {
+            opacity: 1;
+        }
+
+        /* New styles for price display */
+        .price-tag {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #D97E2E; /* Vibrant color for attention */
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        .package-detail:hover .price-tag {
+            opacity: 1;
+            transform: translateX(-50%) translateY(-10px); /* Slight upward movement */
+        }
+
+        /* Mobile-specific styles */
+        @media (max-width: 767.98px) {
+            .package-detail {
+                opacity: 1; /* Always show full opacity on mobile */
+                transform: scale(1.1); /* Scale up like hover state */
+            }
+
+            .shadow-image {
+                opacity: 1; /* Always show shadow image on mobile */
+            }
+
+            .package-name-hover {
+                opacity: 1; /* Always show package name on mobile */
+            }
+
+            .price-tag {
+                opacity: 1; /* Always show price tag on mobile */
+                transform: translateX(-50%) translateY(-10px); /* Apply hover transform */
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="container py-5">
+        <h2 class="text-center text-light-gray mb-4">Available Packages</h2>
+        <div class="row row-cols-1 row-cols-md-2 g-4">
+            {% for package in packages %}
+                <div class="col-md-6 d-flex justify-content-center">
+                    <a href="{{ path('app_package', {'name': package.name}) }}" class="text-decoration-none">
+                        <div class="package-detail">
+                            <div class="position-relative">
+                                <div class="package-image-container">
+                                    <img class="package-image" src="{{ asset('uploads/packages/' ~ package.image) }}" alt="Package Image">
+                                    <img class="shadow-image" src="{{ asset('uploads/packages/' ~ package.shadow_image) }}" alt="Package Shadow Image">
+                                    <div class="package-name-hover">{{ package.name }}</div>
+                                    <!-- Price Tag -->
+                                    <div class="price-tag">{{ package.total }}DT</div>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}

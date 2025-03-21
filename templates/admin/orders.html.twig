@@ -1,0 +1,79 @@
+{% extends 'base.html.twig' %}
+{% block title %}Orders{% endblock %}
+{% block body %}
+    <div class="container mt-5">
+        <h2>All Orders</h2>
+
+        <div class="mb-4">
+            <form method="get" action="{{ path('admin_orders') }}" class="d-flex align-items-center">
+                <label for="state" class="me-2">Filter by State:</label>
+                <select name="state" id="state" class="form-select w-auto" onchange="this.form.submit()">
+                    <option value="">All States</option>
+                    {% for state in states %}
+                        <option value="{{ state }}" {% if state == selectedState %}selected{% endif %}>
+                            {{ state|capitalize }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </form>
+        </div>
+
+        {% if orders is empty %}
+            <p>No orders found.</p>
+        {% else %}
+            {% for orderData in orders %}
+                <div class="card p-4 mb-4">
+                    <h4>
+                        Order #{{ orderData.order.id }}
+                        (Placed on {{ orderData.order.date|date('Y-m-d H:i') }})
+                        <span class="badge {% if orderData.order.state == 'completed' %}bg-success
+                                         {% elseif orderData.order.state == 'pending' %}bg-warning
+                                         {% elseif orderData.order.state == 'cancelled' %}bg-danger
+                                         {% elseif orderData.order.state == 'shipping' %}bg-info
+                                         {% elseif orderData.order.state == 'confirmed' %}bg-primary
+                                         {% else %}bg-secondary{% endif %}">
+                            {{ orderData.order.state|capitalize }}
+                        </span>
+                    </h4>
+                    <h5>Customer Information</h5>
+                    <p><strong>First Name:</strong> {{ orderData.order.contact ? orderData.order.contact.firstname : orderData.order.user.firstname }}</p>
+                    <p><strong>Last Name:</strong> {{ orderData.order.contact ? orderData.order.contact.lastname : orderData.order.user.lastname }}</p>
+                    <p><strong>Email:</strong> {{ orderData.order.contact ? orderData.order.contact.email : orderData.order.user.email }}</p>
+                    <p><strong>Phone Number:</strong> {{ orderData.order.contact ? orderData.order.contact.phoneNumber : orderData.order.user.phoneNumber }}</p>
+                    <p><strong>Address:</strong> State: {{ orderData.order.address.state }}, City: {{ orderData.order.address.city }}, Street: {{ orderData.order.address.street }}</p>
+                    <h5>Order Packages</h5>
+                    {% for packageData in orderData.packages %}
+                        <div class="mb-3">
+                            <h6>Package: {{ packageData.package.packageName }}</h6>
+                            <ul>
+                                {% for item in packageData.items %}
+                                    <li>{{ item.productName }} - Quantity: {{ item.quantity }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endfor %}
+
+                    <div class="mt-4">
+                        <p><strong>Total:</strong> {{ orderData.order.total }}DT</p>
+                    </div>
+
+                    {# Show controls only for pending orders #}
+                    {% if orderData.order.state == 'pending' %}
+                        <div class="text-end mt-3">
+                            <form action="{{ path('admin_order_confirm', {'id': orderData.order.id}) }}" method="POST" class="d-inline">
+                                <button type="submit" class="btn btn-success w-100 mb-2" onclick="return confirm('Are you sure you want to confirm this order?')">
+                                    Confirm Order
+                                </button>
+                            </form>
+                            <form action="{{ path('admin_order_cancel', {'id': orderData.order.id}) }}" method="POST" class="d-inline">
+                                <button type="submit" class="btn btn-danger w-100" onclick="return confirm('Are you sure you want to cancel this order?')">
+                                    Cancel Order
+                                </button>
+                            </form>
+                        </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+{% endblock %}

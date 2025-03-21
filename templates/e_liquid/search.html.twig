@@ -1,0 +1,23 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div class="container mt-4">
+        <h1>Search Results for "{{ query }}"</h1>
+        {% if eliquids is not empty %}
+            <div class="row">
+                {% for eliquid in eliquids %}
+                    <div class="col-md-4 mb-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ eliquid.name }}</h5>
+                                <a href="{{ path('app_e_liquid', {'id': eliquid.id}) }}" class="btn btn-deep-orange">View Details</a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p>No results found for "{{ query }}".</p>
+        {% endif %}
+    </div>
+{% endblock %}

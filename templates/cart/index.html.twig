@@ -1,0 +1,81 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Your Cart{% endblock %}
+
+{% block body %}
+    <div class="container mt-5">
+        {% if cart is defined and cart is not null %}
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div class="d-flex align-items-center gap-4">
+                    <h3 class="mb-0" style="color:#FCF2D6">Total: {{ cart.total }}DT</h3>
+
+                    {# Display the active discount if a promo code is found #}
+                    {% if bestPromoCode is defined and bestPromoCode is not null %}
+                        <div class="active-discount" style="color: #D97E2E;">
+                            Active Discount: {{ bestPromoCode.discount }}%
+                        </div>
+                    {% endif %}
+                </div>
+                <a href="{{ path('cart_redirect') }}" class="btn btn-success">Go to Checkout</a>
+            </div>
+
+            {% for cartPackage in cartPackages %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h4>Package: {{ cartPackage.package.name }}</h4>
+                                <p>Total: {{ cartPackage.package.total }}DT</p>
+                                <p>Shipping: {{ cartPackage.package.shippingCost }}DT</p>
+                            </div>
+                            <form action="{{ path('cart_remove_package', {'id': cartPackage.id}) }}" method="POST" class="d-inline">
+                                <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to remove this package?')">
+                                    Remove
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <h5>Products in this package:</h5>
+                        <table class="table">
+                            <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Quantity</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% if packageItems[cartPackage.id] is defined %}
+                                {% for item in packageItems[cartPackage.id] %}
+                                    <tr>
+                                        <td>{{ item.product.name }}</td>
+                                        <td>{{ item.quantity }}</td>
+                                    </tr>
+                                {% endfor %}
+                            {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="alert alert-info">
+                Your cart is empty
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% block stylesheets %}
+    <style>
+        .btn-success {
+            background-color: #D97E2E;
+            color: #1E1E1E;
+            border: none;
+        }
+        .btn-success:hover {
+            background-color : #BA3F1D;
+            border: none;
+        }
+    </style>
+{% endblock %}

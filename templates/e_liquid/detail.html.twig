@@ -1,0 +1,128 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ eliquid.name }}{% endblock %}
+{% block javascripts %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            document.getElementById('add-to-cart').addEventListener('click', function () {
+                window.location.href = '/package';
+            });
+        });
+    </script>
+{% endblock %}
+{% block stylesheets %}
+    <style>
+        .product-detail {
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 20px;
+            border-radius: 10px;
+            background-color: #393E41; /* Dark Teal */
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .product-detail h1 {
+            color: #BA3F1D; /* Deep Orange */
+            font-weight: bold;
+        }
+
+        .product-detail img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+            border: 3px solid #FCF2D6; /* Light Cyan */
+            margin-bottom: 15px;
+        }
+
+        .product-detail p {
+            font-size: 18px;
+            margin: 10px 0;
+        }
+
+        .product-detail strong {
+            color: #FCF2D6; /* Light Cyan */
+        }
+
+        /* Add to Cart Button */
+        .button-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .button {
+            height: 60px;
+            width: 200px;
+            background-color: #FCF2D6; /* Keeping your original Light Cyan color */
+            border: 2px solid #FCF2D6; /* Deep Orange */
+            color: #1E1E1E; /* Charcoal Black */
+            transition: width 0.6s, background-color 0.6s;
+            font-size: 15px;
+            font-weight: bold;
+            border-radius: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .button span {
+            transition: transform 0.5s, font-size 0.3s;
+        }
+
+        .button svg {
+            opacity: 0;
+            position: absolute;
+            transform: translateX(100px); /* Start hidden */
+            transition: transform 0.6s;
+            z-index: 3;
+            height: 20px;
+        }
+
+        .button:hover {
+            width: 60px; /* Reduce to a circle */
+            background-color: #FF5700; /* Deep Orange */
+            color: #E0E0E0;
+        }
+
+        .button:hover span {
+            transform: translateY(70px); /* Hide text */
+            font-size: 0;
+        }
+
+        .button:hover svg {
+            opacity: 1;
+            transform: translateX(0); /* Move icon to the center */
+        }
+
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="product-detail">
+        <h1>{{ eliquid.name }}</h1>
+
+        {% if eliquid.image %}
+            <img src="{{ asset('uploads/products/eliquid/' ~ eliquid.image) }}" alt="{{ eliquid.name }}">
+        {% else %}
+            <p>No image available.</p>
+        {% endif %}
+
+        <p><strong>Flavor:</strong> {{ eliquid.flavor }}</p>
+
+        <!-- Add to Cart Button -->
+        <div class="button-container">
+            <button id="add-to-cart" type="button" class="button">
+                <span>Add to Cart</span>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="icon">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l3.6 7.59M9 19a2 2 0 100 4 2 2 0 000-4zm9 0a2 2 0 100 4 2 2 0 000-4zM5 5h14l-1.6 8.21a2 2 0 01-2 1.79H9.6a2 2 0 01-2-1.79L5 5z"/>
+                </svg>
+            </button>
+        </div>
+
+
+    </div>
+
+{% endblock %}
