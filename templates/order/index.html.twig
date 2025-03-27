@@ -3,7 +3,7 @@
 {% block title %}Order Details{% endblock %}
 
 {% block body %}
-    <div class="container mt-5">
+    <div class="container mt-5 mb-5"> <!-- Added mb-5 for margin-bottom -->
         <h2>Order Summary</h2>
 
         <div class="card p-4 mb-4" style="font-family: 'Roboto', sans-serif;">
@@ -39,8 +39,8 @@
             </div>
         </div>
 
-        <div class="text-center">
-            <a href="{{ path('order_confirm', {'id': order.id}) }}" class="btn btn-primary">Confirm Order</a>
+        <div class="text-center mb-5"> <!-- Added mb-5 for margin-bottom -->
+            <a href="{{ path('order_confirm', {'id': order.id}) }}" class="btn btn-primary" style="background-color: #D97E2E; border : none;">Confirm Order</a>
         </div>
     </div>
 {% endblock %}

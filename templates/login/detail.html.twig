@@ -5,18 +5,97 @@
 {% block title %}Account Details{% endblock %}
 
 {% block body %}
-    <h1>Account Details</h1>
+    <div class="container mt-4">
 
-    {{ form_start(form) }}
-    {{ form_row(form.firstname) }}
-    {{ form_row(form.lastname) }}
-    {{ form_row(form.email) }}
-    {{ form_row(form.phone_number) }}
-    {{ form_row(form.password) }}
-    {{ form_row(form.address.state) }}
-    {{ form_row(form.address.city) }}
-    {{ form_row(form.address.street) }}
+        {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
 
-    <button type="submit" class="btn btn-primary">Update</button>
-    {{ form_end(form) }}
+        <div class="row">
+            <div class="col-md-6">
+                <h4 class="text-white">Personal Information</h4>
+                <div class="mb-3">
+                    {{ form_label(form.firstname, null, {'label_attr': {'class': 'text-white'}}) }}
+                    {{ form_widget(form.firstname, {'attr': {'class': 'form-control', 'required': 'required'}}) }}
+                    {{ form_errors(form.firstname) }}
+                </div>
+                <div class="mb-3">
+                    {{ form_label(form.lastname, null, {'label_attr': {'class': 'text-white'}}) }}
+                    {{ form_widget(form.lastname, {'attr': {'class': 'form-control', 'required': 'required'}}) }}
+                    {{ form_errors(form.lastname) }}
+                </div>
+                <div class="mb-3">
+                    {{ form_label(form.email, null, {'label_attr': {'class': 'text-white'}}) }}
+                    {{ form_widget(form.email, {'attr': {'class': 'form-control', 'required': 'required'}}) }}
+                    {{ form_errors(form.email) }}
+                </div>
+                <div class="mb-3">
+                    {{ form_label(form.phone_number, null, {'label_attr': {'class': 'text-white'}}) }}
+                    {{ form_widget(form.phone_number, {'attr': {'class': 'form-control', 'required': 'required'}}) }}
+                    {{ form_errors(form.phone_number) }}
+                </div>
+                <div class="mb-3">
+                    {{ form_label(form.password, null, {'label_attr': {'class': 'text-white'}}) }}
+                    {{ form_widget(form.password, {'attr': {'class': 'form-control'}}) }}
+                    {{ form_errors(form.password) }}
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <h4 class="text-white">Address Information</h4>
+                <div class="mb-3">
+                    {{ form_label(form.address.state, null, {'label_attr': {'class': 'text-white'}}) }}
+                    {{ form_widget(form.address.state, {'attr': {'class': 'form-control', 'required': 'required'}}) }}
+                    {{ form_errors(form.address.state) }}
+                </div>
+                <div class="mb-3">
+                    {{ form_label(form.address.city, null, {'label_attr': {'class': 'text-white'}}) }}
+                    {{ form_widget(form.address.city, {'attr': {'class': 'form-control', 'required': 'required'}}) }}
+                    {{ form_errors(form.address.city) }}
+                </div>
+                <div class="mb-3">
+                    {{ form_label(form.address.street, null, {'label_attr': {'class': 'text-white'}}) }}
+                    {{ form_widget(form.address.street, {'attr': {'class': 'form-control', 'required': 'required'}}) }}
+                    {{ form_errors(form.address.street) }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Centered Update Button -->
+        <div class="d-flex justify-content-center mt-3">
+            <button type="submit" class="btn custom-update-btn">Update</button>
+        </div>
+
+        {{ form_end(form) }}
+    </div>
+{% endblock %}
+
+{% block stylesheets %}
+    <style>
+        /* Custom button color */
+        .custom-update-btn {
+            background-color: #D97E2E;
+            border-color: #D97E2E;
+            color: white; /* Ensure text is readable */
+        }
+
+        /* Hover effect for the button */
+        .custom-update-btn:hover {
+            background-color: #C16A24;
+            border-color: #C16A24;
+        }
+
+        /* Ensure all text is white */
+        body {
+            color: white;
+        }
+
+        /* Override Bootstrap's default label color */
+        .form-label {
+            color: white !important;
+        }
+
+        /* Ensure form errors are visible */
+        .invalid-feedback {
+            color: #ff6b6b; /* Light red for errors */
+        }
+    </style>
 {% endblock %}

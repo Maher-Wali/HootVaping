@@ -3,9 +3,9 @@
 {% block main_class %}flex-grow-1{% endblock %}
 {% block body %}
     <!-- Full width hero image -->
-    <section id="hero" class="container-fluid p-0 vh-100">
+    <section id="hero" class="container-fluid p-0"> <!-- Adjust height here -->
         <div class="position-relative h-100">
-            <img src="{{ asset('uploads/landing.jpg') }}" class="w-100 h-100" alt="E-Liquid Landing Image" style="object-fit: cover;">
+            <img src="{{ asset('uploads/cropped_landing2.jpg') }}" class="w-100 h-100" alt="E-Liquid Landing Image" style="object-fit: cover;">
         </div>
     </section>
 
@@ -64,12 +64,13 @@
             overflow: hidden;
         }
         #hero .position-relative {
-            height: 100%;
+            height: 100%; /* Ensure the inner container takes full height */
         }
         #hero img {
             height: 100%; /* Make the image cover the full height */
             object-fit: cover;
             object-position: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Add shadow here */
         }
         #hero .position-absolute {
             width: 100%;
@@ -87,6 +88,10 @@
 
         header {
             margin-bottom: 0;
+        }
+
+        #hero {
+            margin-top: -10px; /* Adjust this value to match your header height */
         }
     </style>
 {% endblock %}
