@@ -2,48 +2,54 @@
 
 namespace App\Entity;
 
-use App\Repository\OrderItemRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: OrderItemRepository::class)]
-#[ORM\Table(name: 'order_item')]
-#[ORM\UniqueConstraint(columns: ['order_id', 'product_id'])] // Composite key constraint
+#[ORM\Entity]
+#[ORM\Table(name: 'order_items')]
 class OrderItem
 {
     #[ORM\Id]
-    #[ORM\ManyToOne(targetEntity: Order::class)]
-    #[ORM\JoinColumn(name: 'order_id', referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
+    #[ORM\GeneratedValue]
+    #[ORM\Column]
+    private ?int $id = null;
+
+    #[ORM\ManyToOne(targetEntity: Order::class, inversedBy: 'orderItems')]
+    #[ORM\JoinColumn(nullable: false)]
     private ?Order $order = null;
 
-    #[ORM\Id]
-    #[ORM\ManyToOne(targetEntity: Product::class)]
-    #[ORM\JoinColumn(name: 'product_id', referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
-    private ?Product $product = null;
+    #[ORM\Column(type: 'string', length: 255)]
+    private ?string $productName = null;
 
-    #[ORM\Column]
+    #[ORM\Column(type: 'integer')]
     private ?int $quantity = null;
+
+    #[ORM\Column(type: 'float')]
+    private ?float $price = null;
+
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
 
     public function getOrder(): ?Order
     {
         return $this->order;
     }
 
-    public function setOrderId(Order $order): static
+    public function setOrder(?Order $order): self
     {
         $this->order = $order;
-
         return $this;
     }
 
-    public function getProduct(): ?Product
+    public function getProductName(): ?string
     {
-        return $this->product;
+        return $this->productName;
     }
 
-    public function setProductId(Product $product): static
+    public function setProductName(string $productName): self
     {
-        $this->product = $product;
-
+        $this->productName = $productName;
         return $this;
     }
 
@@ -52,10 +58,20 @@ class OrderItem
         return $this->quantity;
     }
 
-    public function setQuantity(int $quantity): static
+    public function setQuantity(int $quantity): self
     {
         $this->quantity = $quantity;
+        return $this;
+    }
 
+    public function getPrice(): ?float
+    {
+        return $this->price;
+    }
+
+    public function setPrice(float $price): self
+    {
+        $this->price = $price;
         return $this;
     }
 }

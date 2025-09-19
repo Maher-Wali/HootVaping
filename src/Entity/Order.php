@@ -5,9 +5,11 @@ namespace App\Entity;
 use App\Repository\OrderRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\common\Collections\ArrayCollection;
+use Doctrine\common\Collections\Collection;
 
 #[ORM\Entity(repositoryClass: OrderRepository::class)]
-#[ORM\Table(name: 'orders')] // Changed from `order` to `orders` to avoid reserved keyword conflicts
+#[ORM\Table(name: 'orders')]
 class Order
 {
     #[ORM\Id]
@@ -15,26 +17,32 @@ class Order
     #[ORM\Column]
     private ?int $id = null;
 
-        #[ORM\Column(type: Types::DATETIME_MUTABLE)]
-        private ?\DateTimeInterface $date = null;
+    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    private ?\DateTimeInterface $date = null;
 
-    #[ORM\ManyToOne(targetEntity: Contact::class)]
-    #[ORM\JoinColumn(nullable: true)]
-    private ?Contact $contact = null;
+    #[ORM\Column(type: Types::STRING, length: 255)]
+    private ?string $customerName = null;
 
-    #[ORM\ManyToOne(targetEntity: Address::class)]
-    #[ORM\JoinColumn(nullable: false)]
-    private ?Address $address = null;
+    #[ORM\Column(type: Types::STRING, length: 20)]
+    private ?string $phoneNumber = null;
 
-    #[ORM\ManyToOne(targetEntity: User::class)]
-    #[ORM\JoinColumn(nullable: true)]
-    private ?User $user = null;
+    #[ORM\Column(type: Types::STRING, length: 255)]
+    private ?string $address = null;
+
+    #[ORM\Column(type: Types::FLOAT)]
+    private ?float $total = null;
 
     #[ORM\Column(type: Types::STRING, length: 20)]
     private ?string $state = 'creating';
 
-    #[ORM\Column(type: Types::FLOAT)]
-    private ?float $total = null;
+    #[ORM\OneToMany(mappedBy: 'order', targetEntity: OrderItem::class, cascade: ['persist', 'remove'])]
+    private Collection $orderItems;
+
+
+    public function __construct()
+    {
+        $this->orderItems = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -52,36 +60,47 @@ class Order
         return $this;
     }
 
-    public function getContact(): ?Contact
+    public function getCustomerName(): ?string
     {
-        return $this->contact;
+        return $this->customerName;
     }
 
-    public function setContact(Contact $contact): static
+    public function setCustomerName(string $customerName): static
     {
-        $this->contact = $contact;
+        $this->customerName = $customerName;
         return $this;
     }
 
-    public function getAddress(): ?Address
+    public function getPhoneNumber(): ?string
+    {
+        return $this->phoneNumber;
+    }
+
+    public function setPhoneNumber(string $phoneNumber): static
+    {
+        $this->phoneNumber = $phoneNumber;
+        return $this;
+    }
+
+    public function getAddress(): ?string
     {
         return $this->address;
     }
 
-    public function setAddress(Address $address): static
+    public function setAddress(string $address): static
     {
         $this->address = $address;
         return $this;
     }
 
-    public function getUser(): ?User
+    public function getTotal(): ?float
     {
-        return $this->user;
+        return $this->total;
     }
 
-    public function setUser(?User $user): static
+    public function setTotal(float $total): static
     {
-        $this->user = $user;
+        $this->total = $total;
         return $this;
     }
 
@@ -96,15 +115,33 @@ class Order
         return $this;
     }
 
-
-    public function getTotal(): ?float
+        /**
+     * @return Collection<int, OrderItem>
+     */
+    public function getOrderItems(): Collection
     {
-        return $this->total;
+        return $this->orderItems;
     }
 
-    public function setTotal(float $total): static
+    public function addOrderItem(OrderItem $orderItem): self
     {
-        $this->total = $total;
+        if (!$this->orderItems->contains($orderItem)) {
+            $this->orderItems->add($orderItem);
+            $orderItem->setOrder($this);
+        }
+
+        return $this;
+    }
+
+    public function removeOrderItem(OrderItem $orderItem): self
+    {
+        if ($this->orderItems->removeElement($orderItem)) {
+            // set the owning side to null (unless already changed)
+            if ($orderItem->getOrder() === $this) {
+                $orderItem->setOrder(null);
+            }
+        }
+
         return $this;
     }
 }

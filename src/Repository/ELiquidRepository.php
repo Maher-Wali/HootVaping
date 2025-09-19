@@ -49,4 +49,14 @@ class ELiquidRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    public function findOneByName($name): ?ELiquid
+    {
+        return $this->createQueryBuilder('e')
+            ->andWhere('e.name = :val')
+            ->setParameter('val', $name)
+            ->getQuery()
+            ->getOneOrNullResult()
+        ;
+    }
 }

@@ -33,12 +33,6 @@ final class LoginController extends AbstractController
         ]);
     }
 
-    #[Route('/logout', name: 'app_logout', methods: ['GET'])]
-    public function logout(): void
-    {
-        throw new \Exception('Don\'t forget to activate logout in security.yaml');
-    }
-
     #[Route('/account/details', name: 'app_account_details')]
     public function accountDetails(Request $request, EntityManagerInterface $entityManager): Response
     {
@@ -51,13 +45,22 @@ final class LoginController extends AbstractController
         $form = $this->createForm(UserType::class, $user);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager->persist($user);
-            $entityManager->flush();
+        if ($form->isSubmitted()) {
+            $address = $user->getAddress();
 
-            $this->addFlash('success', 'Your account details have been updated.');
+            // Check if any address field is empty
+            $addressEmpty = empty($address->getState()) ||
+                empty($address->getCity()) ||
+                empty($address->getStreet());
 
-            return $this->redirectToRoute('app_account_details');
+            if ($addressEmpty) {
+                $this->addFlash('error', 'Please enter your complete address information.');
+            } elseif ($form->isValid()) {
+                $entityManager->persist($user);
+                $entityManager->flush();
+                $this->addFlash('success', 'Your account details have been updated.');
+                return $this->redirectToRoute('app_account_details');
+            }
         }
 
         return $this->render('login/detail.html.twig', [
@@ -76,11 +79,16 @@ final class LoginController extends AbstractController
     {
         $user = $this->getUser();
 
-        // Fetch orders sorted by date in descending order
-        $orders = $orderRepository->findBy(
+        // Fetch all orders for the user, sorted by date (DESC)
+        $allOrders = $orderRepository->findBy(
             ['user' => $user],
-            ['date' => 'DESC']  // Add sorting here
+            ['date' => 'DESC']
         );
+
+        // Filter out orders with state = "creating"
+        $orders = array_filter($allOrders, function($order) {
+            return $order->getState() !== 'creating';
+        });
 
         $orderData = [];
         foreach ($orders as $order) {

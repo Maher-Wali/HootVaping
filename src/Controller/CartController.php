@@ -3,15 +3,12 @@
 namespace App\Controller;
 
 use App\Entity\Cart;
-use App\Entity\CartPackage;
-use App\Entity\PromoCode;
-use App\Entity\PromoCodeUser;
-use App\Repository\CartPackageItemRepository;
-use App\Repository\CartPackageRepository;
-use App\Repository\PromoCodeUserRepository;
+use App\Entity\CartItem;
+use App\Entity\ELiquid;
+use App\Repository\CartItemRepository;
+use App\Repository\CartRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\HttpFoundation\Request;
@@ -24,169 +21,124 @@ final class CartController extends AbstractController
     public function index(
         Request $request,
         EntityManagerInterface $entityManager,
-        CartPackageRepository $cartPackageRepository,
-        CartPackageItemRepository $cartPackageItemRepository,
-        PromoCodeUserRepository $promoCodeUserRepository,
-        Security $security // Inject security to get the user
+        CartRepository $cartRepository,
+        CartItemRepository $cartItemRepository
     ): Response
     {
         $session = $request->getSession();
-        $cookies = $request->cookies;
-        $user = $security->getUser(); // Get the logged-in user
-        $cart = null;
+        $cartId = $session->get('cart_id') ?? $request->cookies->get('cart_id');
 
-        // Case 1: Logged-in user -> Retrieve or create cart
-        if ($user) {
-            $cart = $entityManager->getRepository(Cart::class)->findOneBy(['user' => $user]);
-            if (!$cart) {
-                $cart = new Cart();
-                $cart->setUser($user);
-                $entityManager->persist($cart);
-                $entityManager->flush();
-            }
-            $session->set('cart_id', $cart->getId());
-
-            $bestPromoCode = $this->findBestPromoCodeForUser($user, $promoCodeUserRepository);
-        }
-        // Case 2: Guest user -> Check session, then cookie, then create new cart
-        else {
-            $cartId = $session->get('cart_id') ?? $cookies->get('cart_id');
-
-            if ($cartId) {
-                $cart = $entityManager->getRepository(Cart::class)->find($cartId);
-            }
-
-            // If no cart exists, create a new one for the guest
-            if (!$cart) {
-                $cart = new Cart();
-                $entityManager->persist($cart);
-                $entityManager->flush();
-            }
-
-            // Store cart ID in session and cookie
-            $session->set('cart_id', $cart->getId());
-
-            $response = new Response();
-            $response->headers->setCookie(
-                new Cookie('cart_id', $cart->getId(), strtotime('+5 days')) // Store for 30 days
-            );
+        if ($cartId) {
+            $cart = $cartRepository->find($cartId);
         }
 
-        // Retrieve CartPackages and their items
-        $cartPackages = $cartPackageRepository->findBy(['cart' => $cart]);
-        if(empty($cartPackages)){
-            return $this->render('cart/empty_cart.html.twig');
+        if (!$cart) {
+            $cart = new Cart();
+            $entityManager->persist($cart);
+            $entityManager->flush();
         }
-        $packageItems = [];
+
+        $session->set('cart_id', $cart->getId());
+        $response = new Response();
+        $response->headers->setCookie(
+            new Cookie('cart_id', $cart->getId(), strtotime('+5 days'))
+        );
+
+        $cartItems = $cartItemRepository->findBy(['cart' => $cart]);
+        if (empty($cartItems)) {
+            return $this->render('cart/empty_cart.html.twig', [], $response);
+        }
 
         $cart->recalculateTotal($entityManager);
 
-
-        foreach ($cartPackages as $cartPackage) {
-            $packageItems[$cartPackage->getId()] = $cartPackageItemRepository->findBy([
-                'cartPackage' => $cartPackage
-            ]);
-        }
-
-        // Render the response (ensure cookies are included if user is a guest)
-        $response ??= new Response();
         return $this->render('cart/index.html.twig', [
             'cart' => $cart,
-            'cartPackages' => $cartPackages,
-            'packageItems' => $packageItems,
-            'bestPromoCode' => $bestPromoCode ?? null,
+            'cartItems' => $cartItems,
         ], $response);
     }
 
-
-
-
-    #[Route('/add-to-cart', name: 'app_add_package_to_cart', methods: ['POST'])]
-    public function addToCart(Request $request, SessionInterface $session): Response
+    #[Route('/add-to-cart', name: 'app_add_to_cart', methods: ['POST'])]
+    public function addToCart(
+        Request $request,
+        EntityManagerInterface $entityManager,
+        CartRepository $cartRepository,
+        CartItemRepository $cartItemRepository
+    ): Response
     {
-        // Retrieve package name and selected product quantities
-        $packageName = $request->request->get('packageName');
-        $products = $request->request->all('products'); // Associative array with product names as keys and quantities as values
+        $eliquidId = $request->request->getInt('eliquidId');
+        $quantity = $request->request->getInt('quantity', 1);
 
-        if (!$packageName || empty($products)) {
-            $this->addFlash('error', 'Invalid package selection.');
-            return $this->redirectToRoute('app_shop'); // Redirect back to shop if form data is invalid
+        if ($eliquidId <= 0 || $quantity <= 0) {
+            $this->addFlash('error', 'Invalid eliquid or quantity.');
+            return $this->redirectToRoute('app_shop');
         }
 
-        // Retrieve the cart from the session (or initialize an empty array if it doesn't exist)
-        $cart = $session->get('cart', []);
+        $eliquid = $entityManager->getRepository(ELiquid::class)->find($eliquidId);
+        if (!$eliquid) {
+            $this->addFlash('error', 'ELiquid not found.');
+            return $this->redirectToRoute('app_shop');
+        }
 
-        // Store the package with its products and quantities
-        $cart[$packageName] = [
-            'name' => $packageName,
-            'products' => $products,
-        ];
+        $session = $request->getSession();
+        $cartId = $session->get('cart_id') ?? $request->cookies->get('cart_id');
 
-        // Save the updated cart back to session
-        $session->set('cart', $cart);
+        if ($cartId) {
+            $cart = $cartRepository->find($cartId);
+        }
 
-        // Optional: Flash message for user feedback
-        $this->addFlash('success', 'Package added to cart!');
+        if (!$cart) {
+            $cart = new Cart();
+            $entityManager->persist($cart);
+            $entityManager->flush();
+        }
 
-        return $this->redirectToRoute('app_cart'); // Redirect to cart page
-    }
+        $cartItem = $cartItemRepository->findOneBy([
+            'cart' => $cart,
+            'eliquid' => $eliquid,
+        ]);
 
-    #[Route('/cart/remove-package/{id}', name: 'cart_remove_package')]
-    public function removePackage(CartPackage $cartPackage, EntityManagerInterface $entityManager): Response
-    {
-        $cart = $cartPackage->getCart();
+        if ($cartItem) {
+            $cartItem->setQuantity($cartItem->getQuantity() + $quantity);
+        } else {
+            $cartItem = new CartItem();
+            $cartItem->setCart($cart);
+            $cartItem->setELiquid($eliquid);
+            $cartItem->setQuantity($quantity);
+        }
 
-        // Remove the CartPackage
-        $entityManager->remove($cartPackage);
-
-        // Recalculate cart total
+        $entityManager->persist($cartItem);
         $cart->recalculateTotal($entityManager);
-
         $entityManager->flush();
 
-        $this->addFlash('success', 'Package removed from cart successfully');
+        $session->set('cart_id', $cart->getId());
+        $response = new Response();
+        $response->headers->setCookie(
+            new Cookie('cart_id', $cart->getId(), strtotime('+5 days'))
+        );
 
+        $this->addFlash('success', 'ELiquid added to cart!');
+        return $this->redirectToRoute('app_cart', [], $response);
+    }
+
+    #[Route('/cart/remove-item/{id}', name: 'cart_remove_item')]
+    public function removeItem(
+        CartItem $cartItem,
+        EntityManagerInterface $entityManager,
+        CartRepository $cartRepository
+    ): Response
+    {
+        $cart = $cartItem->getCart();
+        $entityManager->remove($cartItem);
+        $cart->recalculateTotal($entityManager);
+        $entityManager->flush();
+
+        $this->addFlash('success', 'ELiquid removed from cart successfully.');
         return $this->redirectToRoute('app_cart');
     }
 
     #[Route('/cart/redirect', name: 'cart_redirect')]
-    public function redirectToCheckout(Security $security): Response
+    public function redirectToCheckout(): Response
     {
-        $user = $security->getUser();
-
-        // Case 1: Guest user → Redirect to guest checkout page
-        if (!$user) {
-            return $this->redirectToRoute('guest_checkout');
-        }
-
-        // Case 2: Logged-in user → Check if user details are complete
-        if (!$user->getAddress() || !$user->getPhoneNumber()) {
-            return $this->redirectToRoute('profile_completion');
-        }
-
-        // Case 3: All information is filled → Proceed to checkout
-        return $this->redirectToRoute('app_checkout');
+        return $this->redirectToRoute('guest_checkout');
     }
-
-    private function findBestPromoCodeForUser($user, PromoCodeUserRepository $promoCodeUserRepository): ?PromoCode
-    {
-        $promoCodesUser = $promoCodeUserRepository->findBy([
-            'user' => $user,
-            'used' => false,
-        ]);
-
-        $bestPromoCode = null;
-        $maxDiscount = 0;
-
-        foreach ($promoCodesUser as $promoCodeUser) {
-            $promoCode = $promoCodeUser->getPromoCode();
-            if ($promoCode->getIsActive() && $promoCode->getDiscount() > $maxDiscount) {
-                $maxDiscount = $promoCode->getDiscount();
-                $bestPromoCode = $promoCode;
-            }
-        }
-
-        return $bestPromoCode;
-    }
-
 }

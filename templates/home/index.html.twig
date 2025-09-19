@@ -1,97 +1,462 @@
-{% extends 'base.html.twig' %}
-{% block body_class %}bg-charcoal text-light-gray{% endblock %}
-{% block main_class %}flex-grow-1{% endblock %}
-{% block body %}
-    <!-- Full width hero image -->
-    <section id="hero" class="container-fluid p-0"> <!-- Adjust height here -->
-        <div class="position-relative h-100">
-            <img src="{{ asset('uploads/cropped_landing2.jpg') }}" class="w-100 h-100" alt="E-Liquid Landing Image" style="object-fit: cover;">
-        </div>
-    </section>
-
-    <!-- Featured E-Liquids Section -->
-    <section id="featured-products" class="container py-5">
-        <h2 class="text-center text-light-cyan">Featured E-Liquids</h2>
-        <!-- Adjust the carousel size by adding a custom class -->
-        <div id="productCarousel" class="carousel slide custom-carousel" data-bs-ride="carousel">
-            <div class="carousel-inner">
-                {% for eLiquid in featuredELiquids %}
-                    <div class="carousel-item {% if loop.first %}active{% endif %}">
-                        <div class="card bg-dark-teal text-light-gray border-light-cyan">
-                            <!-- Add the custom class 'carousel-image' here -->
-                            <img src="{{ asset('uploads/products/eliquid/' ~ eLiquid.image) }}" class="card-img-top carousel-image" alt="{{ eLiquid.name }}">
-                        </div>
-                    </div>
-                {% endfor %}
-            </div>
-            <button class="carousel-control-prev" type="button" data-bs-target="#productCarousel" data-bs-slide="prev">
-                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                <span class="visually-hidden">Previous</span>
-            </button>
-            <button class="carousel-control-next" type="button" data-bs-target="#productCarousel" data-bs-slide="next">
-                <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                <span class="visually-hidden">Next</span>
-            </button>
-        </div>
-    </section>
-{% endblock %}
-
-{% block stylesheets %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hootvaping - E-liquides Premium Tunisie</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        .bg-charcoal { background-color: #1E1E1E; }
-        .text-light-gray { color: #E0E0E0; }
-        .text-light-cyan { color: #89CFF0; }
-        .text-deep-orange { color: #FF5700; }
-        .border-light-cyan { border: 2px solid #89CFF0 !important; }
-        .bg-dark-teal { background-color: #006D77; }
-        .btn-deep-orange { background-color: #FF5700; color: #1E1E1E; border: none; }
-        .btn-deep-orange:hover { background-color: #E04E00; }
-
-        /* Custom styles to make the carousel smaller */
-        .custom-carousel {
-            max-width: 600px; /* Adjust the width of the carousel */
-            margin: 0 auto; /* Center the carousel */
-        }
-        .carousel-image {
-            object-fit: cover; /* Ensure the images maintain their aspect ratio */
-        }
-        .card {
-            max-width: 100%; /* Ensure the card fits within the carousel */
+        :root {
+            --primary-dark: #0f0f0f;
+            --secondary-dark: #1a1a1a;
+            --accent-cyan: #00d4ff;
+            --accent-orange: #ff6b35;
+            --text-primary: #ffffff;
+            --text-secondary: #b0b0b0;
+            --gradient-primary: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
+            --gradient-secondary: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+            --shadow-glow: 0 0 30px rgba(0, 212, 255, 0.3);
+            --shadow-card: 0 10px 40px rgba(0, 0, 0, 0.4);
         }
 
-        /* Additional styles for the hero image */
-        #hero {
-            overflow: hidden;
-        }
-        #hero .position-relative {
-            height: 100%; /* Ensure the inner container takes full height */
-        }
-        #hero img {
-            height: 100%; /* Make the image cover the full height */
-            object-fit: cover;
-            object-position: center;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Add shadow here */
-        }
-        #hero .position-absolute {
-            width: 100%;
-            background-color: rgba(30, 30, 30, 0.7); /* Semi-transparent background for text */
-            padding: 2rem;
-        }
-        #hero h1, #hero p {
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8); /* Text shadow for better readability */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
         body {
-            margin: 0;
-            padding: 0;
+            background: var(--primary-dark);
+            color: var(--text-primary);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            overflow-x: hidden;
         }
 
-        header {
-            margin-bottom: 0;
+        /* Animated background particles */
+        .bg-particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: radial-gradient(circle at 20% 50%, rgba(0, 212, 255, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 20%, rgba(255, 107, 53, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 40% 80%, rgba(0, 153, 204, 0.05) 0%, transparent 50%);
+            animation: float 20s ease-in-out infinite;
         }
 
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            33% { transform: translateY(-20px) rotate(1deg); }
+            66% { transform: translateY(-10px) rotate(-1deg); }
+        }
+
+        /* Hero Section */
         #hero {
-            margin-top: -10px; /* Adjust this value to match your header height */
+            height: 100vh;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--secondary-dark) 100%);
+            overflow: hidden;
+        }
+
+        .hero-content {
+            text-align: center;
+            z-index: 2;
+            max-width: 800px;
+            padding: 2rem;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .hero-title {
+            font-size: clamp(2.5rem, 8vw, 5rem);
+            font-weight: 900;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1.5rem;
+            text-shadow: var(--shadow-glow);
+        }
+
+        .hero-subtitle {
+            font-size: clamp(1rem, 3vw, 1.5rem);
+            color: var(--text-secondary);
+            margin-bottom: 3rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .cta-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 1rem 2.5rem;
+            background: var(--gradient-secondary);
+            color: white;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow-card);
+            border: none;
+            cursor: pointer;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 50px rgba(255, 107, 53, 0.4);
+            color: white;
+        }
+
+        /* About Section */
+        #about {
+            padding: 8rem 0;
+            background: var(--secondary-dark);
+            position: relative;
+        }
+
+        .section-title {
+            font-size: clamp(2rem, 5vw, 3rem);
+            text-align: center;
+            margin-bottom: 4rem;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .about-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 3rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow-card);
+        }
+
+        .about-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 60px rgba(0, 212, 255, 0.2);
+            border-color: rgba(0, 212, 255, 0.3);
+        }
+
+        .about-text {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+        }
+
+        /* Featured Products */
+        #featured {
+            padding: 8rem 0;
+            background: var(--primary-dark);
+        }
+
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 4rem;
+        }
+
+        .product-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 0;
+            overflow: hidden;
+            transition: all 0.4s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .product-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--gradient-primary);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .product-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .product-card:hover {
+            transform: translateY(-15px) scale(1.02);
+            box-shadow: 0 25px 80px rgba(0, 212, 255, 0.25);
+            border-color: rgba(0, 212, 255, 0.4);
+        }
+
+        .product-image {
+            width: 100%;
+            height: 250px;
+            background: linear-gradient(45deg, #006D77, #00d4ff);
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            color: white;
+        }
+
+        .product-info {
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .product-name {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        .product-description {
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+        }
+
+        .product-price {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--accent-orange);
+        }
+
+        /* Floating elements */
+        .floating-element {
+            position: absolute;
+            animation: floatUpDown 6s ease-in-out infinite;
+        }
+
+        .floating-element:nth-child(odd) {
+            animation-delay: -3s;
+        }
+
+        @keyframes floatUpDown {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(5deg); }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .hero-content {
+                padding: 1rem;
+            }
+            
+            .about-card {
+                padding: 2rem;
+            }
+            
+            .product-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+        }
+
+        /* Scroll animations */
+        .fade-in-up {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease;
+        }
+
+        .fade-in-up.visible {
+            opacity: 1;
+            transform: translateY(0);
         }
     </style>
-{% endblock %}
+</head>
+<body>
+    <div class="bg-particles"></div>
+    
+    <!-- Hero Section -->
+    <section id="hero">
+        <div class="floating-element" style="top: 10%; left: 10%; color: rgba(0, 212, 255, 0.3); font-size: 2rem;">
+            <i class="fas fa-cloud"></i>
+        </div>
+        <div class="floating-element" style="top: 20%; right: 15%; color: rgba(255, 107, 53, 0.3); font-size: 1.5rem;">
+            <i class="fas fa-bolt"></i>
+        </div>
+        <div class="floating-element" style="bottom: 30%; left: 20%; color: rgba(0, 212, 255, 0.2); font-size: 3rem;">
+            <i class="fas fa-circle"></i>
+        </div>
+        
+        <div class="hero-content">
+            <h1 class="hero-title">Hootvaping</h1>
+            <p class="hero-subtitle">
+                Découvrez l'excellence du vapotage avec nos e-liquides premium fabriqués en Tunisie. 
+                Des saveurs uniques, une qualité exceptionnelle.
+            </p>
+            <a href="/shop" class="cta-button">
+                <i class="fas fa-shopping-bag"></i>
+                Explorer nos produits
+            </a>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="fade-in-up">
+        <div class="container">
+            <h2 class="section-title">L'Art du Vapotage Tunisien</h2>
+            <div class="row justify-content-center">
+                <div class="col-lg-10">
+                    <div class="about-card">
+                        <p class="about-text">
+                            <strong>Hootvaping</strong> révolutionne l'expérience du vapotage en Tunisie avec une approche artisanale unique. 
+                            Nous créons et fabriquons nos propres <strong>e-liquides premium</strong> dans nos laboratoires, 
+                            en utilisant uniquement les meilleurs ingrédients pour garantir une expérience de vapotage incomparable.
+                        </p>
+                        <p class="about-text">
+                            De nos saveurs fruitées exotiques aux classiques revisités, chaque création reflète notre passion pour l'innovation 
+                            et notre engagement envers la qualité. Profitez d'une <strong>livraison express</strong> partout en Tunisie 
+                            et rejoignez la communauté Hootvaping pour une expérience 100% locale et authentique.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Featured Products -->
+    <section id="featured" class="fade-in-up">
+        <div class="container">
+            <h2 class="section-title">Nos E-Liquides Signature</h2>
+            <div class="product-grid">
+                <div class="product-card">
+                    <div class="product-image">
+                        <i class="fas fa-apple-alt"></i>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Fruits du Verger</h3>
+                        <p class="product-description">Un mélange harmonieux de pommes croquantes et de poires juteuses</p>
+                        <div class="product-price">25 DT</div>
+                    </div>
+                </div>
+                
+                <div class="product-card">
+                    <div class="product-image">
+                        <i class="fas fa-lemon"></i>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Citron Glacé</h3>
+                        <p class="product-description">La fraîcheur explosive du citron avec une touche de menthe glaciale</p>
+                        <div class="product-price">28 DT</div>
+                    </div>
+                </div>
+                
+                <div class="product-card">
+                    <div class="product-image">
+                        <i class="fas fa-seedling"></i>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Menthe Sauvage</h3>
+                        <p class="product-description">L'authenticité de la menthe tunisienne dans toute sa pureté</p>
+                        <div class="product-price">22 DT</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Scroll animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.fade-in-up').forEach(el => {
+            observer.observe(el);
+        });
+
+        // Add dynamic particle effects
+        function createParticle() {
+            const particle = document.createElement('div');
+            particle.style.cssText = `
+                position: fixed;
+                width: 4px;
+                height: 4px;
+                background: rgba(0, 212, 255, 0.6);
+                border-radius: 50%;
+                pointer-events: none;
+                z-index: -1;
+                left: ${Math.random() * 100}vw;
+                top: 100vh;
+                animation: particleFloat ${3 + Math.random() * 4}s linear forwards;
+            `;
+            
+            document.body.appendChild(particle);
+            
+            setTimeout(() => {
+                particle.remove();
+            }, 7000);
+        }
+
+        // Add CSS for particle animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes particleFloat {
+                to {
+                    transform: translateY(-120vh) translateX(${Math.random() * 200 - 100}px);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Create particles periodically
+        setInterval(createParticle, 300);
+    </script>
+</body>
+</html>

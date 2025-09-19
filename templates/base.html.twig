@@ -2,11 +2,21 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>{% block title %}HootVaping{% endblock %}</title>
+    <title>{% block title %}Eliquide Tunisie | Liquide Vape – HootVaping{% endblock %}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/png" href="{{ asset('uploads/logo_ramadan.png') }}">
+    <meta name="description" content="HootVaping est votre boutique en ligne spécialisée dans les eliquides, cigarettes électroniques et accessoires vape en Tunisie. Livraison rapide garantie.">
+
+    <meta property="og:title" content="Vape Tunisie | Eliquide fruité – HootVaping" />
+    <meta property="og:description" content="Commandez votre eliquide en Tunisie sur HootVaping. Livraison rapide, produits de qualité." />
+    <meta property="og:image" content="{{ asset('uploads/logo.png') }}" />
+    <meta property="og:url" content="{{ app.request.uri }}" />
+    <meta property="og:type" content="website" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <link rel="canonical" href="{{ app.request.scheme ~ '://' ~ app.request.host ~ app.request.pathInfo }}" />
+    <link rel="icon" type="image/png" href="{{ asset('uploads/logo.ico') }}">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
     {% block stylesheets %}
         <style>
             html, body {
@@ -23,7 +33,6 @@
     {% endblock %}
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script defer src="{{ asset('js/loader.js') }}"></script>
     {% block javascripts %}
         <script>
             $(document).ready(function() {
@@ -410,8 +419,8 @@
         </div>
     </div>
 
-    <a href="/home">Home</a>
-    <a href="/package">Shop</a>
+    <a href="/">Home</a>
+    <a href="/pack-eliquides">Shop</a>
     <a href="/cart">Cart</a>
     <a href="#" class="dropdown-toggle-mobile">Account</a>
     <div class="sidenav-dropdown">
@@ -440,7 +449,7 @@
         <div class="d-flex align-items-center left-section">
             <div class="gift-input-container">
                 <button class="btn btn-link p-0 me-3" id="gift-button">
-                    <img src="{{ asset('uploads/gift.png') }}" alt="Cadeau" class="gift-icon">
+                    <img src="{{ asset('uploads/gift.png') }}" alt="code eliquide vape tunisie" class="gift-icon">
                 </button>
                 <div class="gift-input-wrapper" style="display: none;">
                     <div class="popover-container">
@@ -459,7 +468,7 @@
 
             <form class="d-flex search-form" id="search-form">
                 <div class="input-group">
-                    <input id="search-input" class="form-control search-bar" type="search" placeholder="Eliquid name ..." aria-label="Search" name="q">
+                    <input id="search-input" class="form-control search-bar" type="search" placeholder="eliquid ..." aria-label="Search" name="q">
                     <button class="btn btn-deep-orange" type="submit">Search</button>
                 </div>
                 <div id="search-results" class="search-results"></div>
@@ -468,8 +477,8 @@
 
         <!-- Logo in Center -->
         <div class="logo mx-auto">
-            <a href="/home">
-                <img src="{{ asset('uploads/logo_ramadan.png') }}" alt="Logo du magasin" class="img-fluid" style="max-height: 100px;" >
+            <a href="/">
+                <img src="{{ asset('uploads/logo.png') }}" alt="HootVaping - Boutique Vape en Tunisie" class="img-fluid" style="max-height: 100px;" >
             </a>
         </div>
 
@@ -490,8 +499,8 @@
         <!-- Navigation Links (hidden on mobile) -->
         <nav class="ms-auto">
             <ul class="nav">
-                <li class="nav-item"><a class="nav-link text-light-gray" href="/home" style="transition: color 0.3s;" onmouseover="this.style.color='#BA3F1D'" onmouseout="this.style.color=''">Home</a></li>
-                <li class="nav-item"><a class="nav-link text-light-gray" href="/package" style="transition: color 0.3s;" onmouseover="this.style.color='#BA3F1D'" onmouseout="this.style.color=''">Shop</a></li>
+                <li class="nav-item"><a class="nav-link text-light-gray" href="/" style="transition: color 0.3s;" onmouseover="this.style.color='#BA3F1D'" onmouseout="this.style.color=''">Home</a></li>
+                <li class="nav-item"><a class="nav-link text-light-gray" href="/pack-eliquides" style="transition: color 0.3s;" onmouseover="this.style.color='#BA3F1D'" onmouseout="this.style.color=''">Shop</a></li>
                 <li class="nav-item"><a class="nav-link text-light-gray" href="/cart" style="transition: color 0.3s;" onmouseover="this.style.color='#BA3F1D'" onmouseout="this.style.color=''">Cart</a></li>
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle text-light-gray" href="#" id="accountDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="transition: color 0.3s;" onmouseover="this.style.color='#BA3F1D'" onmouseout="this.style.color=''">
@@ -536,8 +545,8 @@
     <footer class="text-center py-3 bg-dark-teal mt-auto position-relative">
         <div class="container d-flex justify-content-center">
             <!-- Centered Instagram Link -->
-            <a href="https://www.instagram.com/hootvaping" class="text-light-gray" target="_blank">
-                <img src="{{ asset('uploads/instagram_logo.png') }}" alt="Instagram" style="height: 25px; filter: invert(100%);"> @hootvaping
+            <a href="https://www.instagram.com/hoot_tn" class="text-light-gray" target="_blank">
+                <img src="{{ asset('uploads/instagram_logo.png') }}" alt="Instagram livraison liquide vape" style="height: 25px; filter: invert(100%);"> @hootvaping
             </a>
         </div>
         <p class="mt-3">&copy; {{ "now"|date("Y") }} HootVaping. All Rights Reserved.</p>
